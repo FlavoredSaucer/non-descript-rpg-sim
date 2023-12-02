@@ -232,25 +232,14 @@ slprshort = slplong/10
 # Main Game
 Turns = 0 
 
-# Players = [
-# 	PlayerArwin(),
-# 	PlayerTaz(),
-# 	PlayerMartin(),
-# 	PlayerAjay(),
+Players = [
+	PlayerArwin(),
+	PlayerTaz(),
+	PlayerMartin(),
+	PlayerAjay(),
 	
-# 	EnemyBeholder(),
-# ]
-Players = []
-for i in range(6):
-	Players.append(PlayerArwin(" "+str(i+1)))
-	Players.append(PlayerTaz(" "+str(i+1)))
-	Players.append(PlayerMartin(" "+str(i+1)))
-	Players.append(PlayerAjay(" "+str(i+1)))
-
-for i in range(80):
-	Players.append(EnemyRat3(" Number "+str(i+1)))
-
-	
+	EnemyBeholder(),
+]
 
 Teams = []
 
