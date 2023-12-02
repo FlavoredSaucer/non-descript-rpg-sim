@@ -2,11 +2,6 @@ import random as rng
 from re import split
 from time import sleep
 
-slplong = 0
-slpshort = 0
-slprshort = 0
-
-
 class Die:
 	def __init__(self, nos):
 		self.NumberOfSides = nos
@@ -90,10 +85,12 @@ class PlayerGeneric:
 			self.IsAlive = False
 
 	def CommentateGenericAttack(self):
-		if self.Opponent.HP < 0:
-			self.FindOpponent()
 		if self.Opponent is None:
+			print(self.Name+" cannot find a target!");sleep(slprshort/3)
 			return
+		if self.Opponent.HP <= 0:
+			self.FindOpponent()
+			if self.Opponent is None: return
 		self.DoAttack(self.Opponent)
 		if self.d20.Roll+self.PlusToHit >= self.Opponent.AC:
 			if self.d20.Roll == 20:
@@ -102,14 +99,17 @@ class PlayerGeneric:
 				print(self.Name+" rolls a "+str(self.d20.Roll+self.PlusToHit)+" and hits! ",end="")
 			print("Dealing "+str(self.LastDamage)+" points to "+self.Opponent.Name+". ("+str(self.Opponent.HP)+" HP Left.)"); sleep(slpshort)
 		else:
-			print(self.Name+" misses with a "+str(self.d20.Roll+self.PlusToHit)+"..."); sleep(slprshort/2)
+			print(self.Name+" misses "+self.Opponent.Name+" with a "+str(self.d20.Roll+self.PlusToHit)+"..."); sleep(slpshort/2)
 
 
 	def Speak(self):
 		print(self.Name+" says: "+rng.choice(self.Phrases))
 	
 	def FindOpponent(self,Silent = True):
-		EnemyTeams = [x for x in Teams if x != self.Team]
+		EnemyTeams = [x for x in Teams if x != self.Team and x.IsAlive]
+		if len(EnemyTeams) == 0:
+			self.Opponent = None
+			return
 		self.Opponent = rng.choice(list(EnemyTeams)).ReturnRandomTeammate()
 		if not Silent:
 			print(self.Name+"'s opponent is "+self.Opponent.Name+"!")
@@ -132,6 +132,33 @@ class PlayerPrincess(PlayerGeneric):
 	PlusToHit=3
 	Attack="1d8+1"
 
+class PlayerAjay(PlayerGeneric):
+	Name="Ajay Gale"
+	IFF = 1
+	AC=11
+	HP=20
+	InitiativePlus=4
+	PlusToHit=5
+	Attack="3d8"
+
+class PlayerTaz(PlayerGeneric):
+	Name="Taaz"
+	IFF = 1
+	AC=19
+	HP=28
+	InitiativePlus=1
+	PlusToHit=5
+	Attack="1d6+3"
+
+class PlayerMartin(PlayerGeneric):
+	Name="Martin Magfiel"
+	IFF = 1
+	AC=15
+	HP=35
+	InitiativePlus = 2
+	PlusToHit=6
+	Attack="1d12+4"
+
 class EnemyRat1(PlayerGeneric):
 	Name="Rat Swarm"
 	IFF = 2
@@ -139,6 +166,24 @@ class EnemyRat1(PlayerGeneric):
 	HP=24
 	PlusToHit=2
 	Attack="2d6"
+
+class EnemyRat2(PlayerGeneric):
+	Name="1000 Gay Rats"
+	IFF = 2
+	AC=5
+	HP=500
+	InitiativePlus=2
+	PlusToHit=0
+	Attack="3d10"
+
+class EnemyRat3(PlayerGeneric):
+	Name="Giant Rat"
+	IFF = 2
+	AC=12
+	HP=7
+	InitiativePlus=0
+	PlusToHit=4
+	Attack="1d4+2"
 
 class EnemyBeholder(PlayerGeneric):
 	Name="Beholder"
@@ -148,30 +193,20 @@ class EnemyBeholder(PlayerGeneric):
 	PlusToHit=5
 	Attack="4d6"
 
-class EnemyRat2(PlayerGeneric):
-	Name="1000 Gay Rats"
-	IFF = 2
-	AC=1
-	HP=250
-	InitiativePlus=2
-	PlusToHit=0
-	Attack="1d100"
-
-class EnemyRat3(PlayerGeneric):
-	Name="Giant Rat"
-	IFF = 2
-	AC=1
+class EnemyWTF(PlayerGeneric):
+	Name="Beholder"
+	IFF = 3
+	AC=10
 	HP=1
-	InitiativePlus=0
-	PlusToHit=4
-	Attack="1d4+2"
-
+	PlusToHit=5
+	Attack="4d6"
 
 class TeamGeneric():
 	Name = "Generic Team"
 	TeamIFF = 0
 	IsAlive = False
 	def __init__(self, Name, TeamIFF):
+		self.IsAlive = True
 		self.Name = Name
 		self.TeamIFF = TeamIFF
 		self.Teammates = []
@@ -190,22 +225,36 @@ class TeamGeneric():
 		return rng.choice(Teammate)
 
 
+slplong = 1
+slpshort = slplong/2
+slprshort = slplong/10
 
 # Main Game
 Turns = 0 
 
+# Players = [
+# 	PlayerArwin(),
+# 	PlayerTaz(),
+# 	PlayerMartin(),
+# 	PlayerAjay(),
+	
+# 	EnemyBeholder(),
+# ]
 Players = []
+for i in range(6):
+	Players.append(PlayerArwin(" "+str(i+1)))
+	Players.append(PlayerTaz(" "+str(i+1)))
+	Players.append(PlayerMartin(" "+str(i+1)))
+	Players.append(PlayerAjay(" "+str(i+1)))
+
+for i in range(80):
+	Players.append(EnemyRat3(" Number "+str(i+1)))
+
+	
+
 Teams = []
 
-
-
-for i in range(10):
-	Players.append(PlayerArwin(str(i)))
-for i in range(50):
-	Players.append(EnemyRat3(str(i)))
-
-
-
+rng.shuffle(Players)
 
 for Plr in Players:
 	Plr.RollInitiative()
@@ -250,11 +299,14 @@ while True:
 	print();sleep(slplong)
 
 	for plr in Players:
+		for t in Teams:
+			t.Update()
 		if plr.IsAlive:
 			plr.CommentateGenericAttack()
 		else:
-			print(plr.Name+" is dead..."); sleep(slpshort)
-
+			print(plr.Name+" is dead..."); sleep(slprshort)
+	print();sleep(slpshort)
+	print();sleep(slplong)
 
 
 
