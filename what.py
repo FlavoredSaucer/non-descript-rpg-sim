@@ -328,18 +328,18 @@ while True:
 		for p in t.Teammates:
 			if not p.IsAlive:
 				p.DeathMessage = True
-	# if list(t.IsAlive for t in Teams).count(True) == 1:
-	# 	for t in Teams:
-	# 		if t.IsAlive and not t.TeamIFF == 0:
-	# 			print(t.Name+" wins!")
-	# 			break
+	if list(t.IsAlive for t in Teams).count(True) == 1:
+		for t in Teams:
+			if t.IsAlive:
+				print(t.Name+" wins!")
+				break
 	# 		if t.IsAlive and t.TeamIFF == 0:
 	# 			if len(list(p.IsAlive for p in t.Teammates)) == 1:
 	# 				print("wawa")
-	Alive = []
-	Alive.extend(list(x for x in Teams if x.TeamIFF != 0))
-	Alive.extend(list(x.Teammates for x in Teams if x.TeamIFF == 0))
-	print(Alive)
+	# Alive = []
+	# Alive.extend(list(x for x in Teams if x.TeamIFF != 0))
+	# Alive.extend(list(x.Teammates for x in Teams if x.TeamIFF == 0))
+	# print(Alive)
 
 	Turns += 1
 
