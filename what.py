@@ -29,7 +29,7 @@ class PlayerGeneric:
 	HP = 1
 	Initiative=0
 	Opponent = None
-
+	DeathMessage = False
 	PlusToHit = 0
 	Attack = "0d0+2"
 	AtkDice = []
@@ -106,7 +106,10 @@ class PlayerGeneric:
 		print(self.Name+" says: "+rng.choice(self.Phrases))
 	
 	def FindOpponent(self,Silent = True):
-		EnemyTeams = [x for x in Teams if x != self.Team and x.IsAlive]
+		if self.IFF == 0:
+			EnemyTeams = [x for x in Teams if x.IsAlive and x != self]
+		else:
+			EnemyTeams = [x for x in Teams if x != self.Team and x.IsAlive]
 		if len(EnemyTeams) == 0:
 			self.Opponent = None
 			return
@@ -159,6 +162,42 @@ class PlayerMartin(PlayerGeneric):
 	PlusToHit=6
 	Attack="1d12+4"
 
+class PlayerArwin2(PlayerGeneric):
+	Name="Arwin Gepetto"
+	IFF = 1
+	AC = 19
+	HP = 164
+	InitiativePlus = 2
+	PlusToHit = 9
+	Attack="4d6+12"
+
+class PlayerAjay2(PlayerGeneric):
+	Name="Ajay Gale"
+	IFF = 1
+	AC=19
+	HP=50
+	InitiativePlus=5
+	PlusToHit=7
+	Attack="3d8"
+
+class PlayerTaz2(PlayerGeneric):
+	Name="Taaz"
+	IFF = 1
+	AC=21
+	HP=95
+	InitiativePlus=1
+	PlusToHit=7
+	Attack="2d8+8"
+
+class PlayerMartin2(PlayerGeneric):
+	Name="Martin Magfiel"
+	IFF = 1
+	AC=18
+	HP=97
+	InitiativePlus = 2
+	PlusToHit=10
+	Attack="2d6+7"
+
 class EnemyRat1(PlayerGeneric):
 	Name="Rat Swarm"
 	IFF = 2
@@ -193,6 +232,16 @@ class EnemyBeholder(PlayerGeneric):
 	PlusToHit=5
 	Attack="4d6"
 
+class RandomRat(PlayerGeneric):
+	Name="Wild Rat"
+	IFF = 0
+	AC = 12
+	HP = 31
+	PlusToHit = 2
+	Attack = "3d4"
+
+
+
 class EnemyWTF(PlayerGeneric):
 	Name="Beholder"
 	IFF = 3
@@ -224,6 +273,13 @@ class TeamGeneric():
 			return None
 		return rng.choice(Teammate)
 
+	# def ReturnRandomTeammate(self):
+	# 	Teammate = [x for x in self.Teammates if x.IsAlive]
+	# 	if len(Teammate) == 0:
+	# 		return None
+	# 	return Teammate[0]
+
+
 
 slplong = 1
 slpshort = slplong/2
@@ -232,14 +288,17 @@ slprshort = slplong/10
 # Main Game
 Turns = 0 
 
-Players = [
-	PlayerArwin(),
-	PlayerTaz(),
-	PlayerMartin(),
-	PlayerAjay(),
-	
-	EnemyBeholder(),
-]
+Players = []
+
+for play in range(1):
+	Players.append(PlayerAjay2(str(play)))
+	Players.append(PlayerArwin2(str(play)))
+	Players.append(PlayerTaz2(str(play)))
+	Players.append(PlayerMartin2(str(play)))
+
+
+for rat in range(3):
+	Players.append(RandomRat(" " + str(rat)))
 
 Teams = []
 
@@ -266,11 +325,21 @@ for plr in Players:
 while True:
 	for t in Teams:
 		t.Update()
-	if list(t.IsAlive for t in Teams).count(True) == 1:
-		for t in Teams:
-			if t.IsAlive:
-				print(t.Name+" wins!")
-		break
+		for p in t.Teammates:
+			if not p.IsAlive:
+				p.DeathMessage = True
+	# if list(t.IsAlive for t in Teams).count(True) == 1:
+	# 	for t in Teams:
+	# 		if t.IsAlive and not t.TeamIFF == 0:
+	# 			print(t.Name+" wins!")
+	# 			break
+	# 		if t.IsAlive and t.TeamIFF == 0:
+	# 			if len(list(p.IsAlive for p in t.Teammates)) == 1:
+	# 				print("wawa")
+	Alive = []
+	Alive.extend(list(x for x in Teams if x.TeamIFF != 0))
+	Alive.extend(list(x.Teammates for x in Teams if x.TeamIFF == 0))
+	print(Alive)
 
 	Turns += 1
 
@@ -293,7 +362,9 @@ while True:
 		if plr.IsAlive:
 			plr.CommentateGenericAttack()
 		else:
-			print(plr.Name+" is dead..."); sleep(slprshort)
+			if not plr.DeathMessage:
+				print(plr.Name+" is dead..."); sleep(slprshort)
+				plr.DeathMessage = True
 	print();sleep(slpshort)
 	print();sleep(slplong)
 
